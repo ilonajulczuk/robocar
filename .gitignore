@@ -1,0 +1,5 @@
+default/dep
+*.o
+*.eep
+*.elf
+*.hex
