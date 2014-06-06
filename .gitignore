@@ -3,3 +3,4 @@ default/dep
 *.eep
 *.elf
 *.hex
+*.swp
