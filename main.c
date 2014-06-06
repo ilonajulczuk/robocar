@@ -34,7 +34,8 @@ void motors_init() {
 }
      
 void change_direction() {
-    PORTD ^= (1 << MODE);
+    PORTD ^= (1 << MOTOR_1_PHASE);
+    PORTD ^= (1 << MOTOR_2_PHASE);
 }
 
 void change_spped_of_first_motor(uint8_t change) {
