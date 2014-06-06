@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
+#include "ultrasonic_sensor.h"
 
 #define MODE PD3
 #define MOTOR_1_PHASE PD1
@@ -59,19 +60,52 @@ void change_spped_of_second_motor(uint8_t change) {
 int main()
 {
     motors_init();
-    duty_motor_1 = 215;
-    duty_motor_2 = 215;
+    initialize_diodes();
+    initialize_us();
+
+    duty_motor_1 = 65;
+    duty_motor_2 = 65;
     
-    // ride forwards and backwars 
+    OCR0A = duty_motor_1;
+    OCR2A = duty_motor_2;
+
+    int distance;
     uint8_t i;
-    while(1)
-    {
-        change_direction();
-        for(i=190; i > 50; i -= 20) {
-            OCR0A = i;
-            OCR2A = i;
-            _delay_ms(200);
+    
+    int MAX_BACK_UP = 10;
+
+    while(1){
+        OCR0A = duty_motor_1;
+        OCR2A = duty_motor_2;
+        distance = measure_distance();
+        turn_off_diodes();
+        if(distance == INVALID_DISTANCE) {
+            toggle_red_diode();
+        } else if (distance == INFINITE_DISTANCE) {
+            toggle_green_diode(); 
+        } else {
+            if(distance > 10) {
+                toggle_yellow_diode();
+                _delay_ms(50);
+                turn_off_diodes();
+            }
+            else {
+                toggle_yellow_diode();
+                
+                OCR0A = 0;
+                OCR2A = 0;
+                
+                _delay_ms(100);
+                change_direction();
+                OCR0A = duty_motor_1;
+                OCR2A = duty_motor_2;
+                for(i=0; i < MAX_BACK_UP; i++) {
+                    _delay_ms(50);
+                }
+                change_direction();
+            }
         }
-        _delay_ms(500);
+
+        _delay_ms(50);
     }
 }

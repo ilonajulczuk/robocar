@@ -34,13 +34,17 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0
 
 
 ## Objects that must be built in order to link
-OBJECTS = main.o 
+OBJECTS = ultrasonic_sensor.o main.o
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
 
 ## Build
 all: $(TARGET) robocar.hex robocar.eep size
+
+## Compile
+ultrasonic_sensor.o: ../ultrasonic_sensor.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 main.o: ../main.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<

@@ -1,41 +1,7 @@
-#include <avr/io.h>
-#include <util/delay.h>
-
-#define US_PORT PORTD
-#define US_PIN  PIND
-#define US_DDR  DDRD
-
-#define US_POS PD0      //PORTD0
-#define US_TRIG PD7
-
-/********************************************************************
-
-  This function measurers the width of high pulse in micro second.
-
- ********************************************************************/
-
-#define US_ERROR 0xffff
-#define US_NO_OBSTACLE 0xfffe
-
-#define INVALID_DISTANCE -1
-#define INFINITE_DISTANCE 0xffff
+#include "ultrasonic_sensor.h"
 
 
-/*******************************************************************
-  DIODES SETUP
-
- *******************************************************************/
-
-#define DIODES_PORT PORTD
-#define DIODES_DDR DDRD
-#define RED_DIODE PD6
-#define GREEN_DIODE PD5
-#define YELLOW_DIODE PD4
-
-#define TIMEOUT 600000
-
-uint16_t get_pulse_width()
-{
+uint16_t get_pulse_width() {
     uint32_t i;
     uint32_t result;
 
@@ -111,15 +77,15 @@ int measure_distance() {
     }
 }
 
-void turn_yellow_diode_on() {
+void toggle_yellow_diode() {
     DIODES_PORT |= (1 << YELLOW_DIODE);
 }
 
-void turn_green_diode_on() {
+void toggle_green_diode() {
     DIODES_PORT |= (1 << GREEN_DIODE);
 }
 
-void turn_red_diode_on() {
+void toggle_red_diode() {
     DIODES_PORT |= (1 << RED_DIODE);
 }
 
@@ -139,14 +105,8 @@ void initialize_us() {
     US_DDR &= (~(1<<US_POS));
 }
 
-void wait() {
-    int i;
-    for(i = 0; i < 10; i++) {
-        _delay_loop_2(0);
-    }
-}
 
-int main() {
+int example() {
     
     int distance;
     initialize_diodes();
@@ -156,17 +116,17 @@ int main() {
         distance = measure_distance();
         turn_off_diodes();
         if(distance == INVALID_DISTANCE) {
-            turn_red_diode_on();
+            toggle_red_diode();
         } else if (distance == INFINITE_DISTANCE) {
-            turn_green_diode_on(); 
+            toggle_green_diode(); 
         } else {
             if(distance > 10) {
-                turn_yellow_diode_on();
+                toggle_yellow_diode();
                 _delay_ms(50);
                 turn_off_diodes();
             }
             else {
-                turn_yellow_diode_on();
+                toggle_yellow_diode();
                 _delay_ms(50);
             }
         }
