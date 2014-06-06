@@ -1,8 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
 
-#define MOTOR_1 PB5
-#define MOTOR_2 PB6
 #define MODE PD3
 #define MOTOR_1_PHASE PD1
 #define MOTOR_2_PHASE PD2
@@ -31,6 +29,7 @@ void motors_init() {
     pwm_init_timer_two();
     DDRD |= (1 << MOTOR_1_PHASE) | (1 << MOTOR_2_PHASE) | (1 << MODE);
     PORTD |= (1 << MOTOR_1_PHASE) | (1 << MOTOR_2_PHASE) | (1 << MODE);
+    DDRB |= 0xff;
 }
      
 void change_direction() {
@@ -73,5 +72,6 @@ int main()
             OCR2A = i;
             _delay_ms(200);
         }
+        _delay_ms(500);
     }
 }
