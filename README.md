@@ -13,3 +13,11 @@
 
 PWM1 at PB4 and PWM2 at PB7.
 
+
+##Ultrasonic sensor
+
+Robocar uses HC-SR04 sensor.
+
+I wrote a simple library to interface with it.
+
+![mounted sensor](http://i.imgur.com/35iVqjd.jpg) 
