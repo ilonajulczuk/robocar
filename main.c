@@ -58,6 +58,20 @@ void change_spped_of_second_motor(uint8_t change) {
     }
 }
 
+//Simple Wait Function
+void Wait()
+{
+   uint8_t i;
+   for(i=0;i<10;i++)
+   {
+      _delay_loop_2(0);
+      _delay_loop_2(0);
+      _delay_loop_2(0);
+   }
+
+}
+
+
 int main()
 {
     motors_init();
@@ -66,16 +80,40 @@ int main()
 
     duty_motor_1 = 65;
     duty_motor_2 = 65;
-    
+
     OCR0A = duty_motor_1;
     OCR2A = duty_motor_2;
 
     int distance;
     uint8_t i;
-    
+
     int MAX_BACK_UP = 10;
+    //Configure TIMER1
+    TCCR1A|=(1<<COM1A1)|(1<<COM1B1)|(1<<WGM11);        //NON Inverted PWM
+    TCCR1B|=(1<<WGM13)|(1<<WGM12)|(1<<CS11)|(1<<CS10); //PRESCALER=64 MODE 14(FAST PWM)
+
+    ICR1=4999;  //fPWM=50Hz (Period = 20ms Standard).
+
+    DDRB|= (1<<PB5);   //PWM Pins as Out
+
 
     while(1){
+        OCR1A=216;  //90 degree
+        _delay_ms(50);
+
+        
+        OCR1A=435;  //180 degree
+        _delay_ms(50);
+
+        OCR1A=216;  //90 degree
+        _delay_ms(50);
+
+        OCR1A=325;  //135 degree
+        _delay_ms(50);
+
+        OCR1A=167;   //0 degree
+        _delay_ms(50);
+
         OCR0A = duty_motor_1;
         OCR2A = duty_motor_2;
         distance = measure_distance();
@@ -92,10 +130,10 @@ int main()
             }
             else {
                 toggle_yellow_diode();
-                
+
                 OCR0A = 0;
                 OCR2A = 0;
-                
+
                 _delay_ms(100);
                 change_direction();
                 OCR0A = duty_motor_1;
