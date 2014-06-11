@@ -1,5 +1,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/interrupt.h> 
 #include "ultrasonic_sensor.h"
 
 #define MODE PD3
@@ -9,6 +10,7 @@
 #define MIN_SPEED 0
 
 volatile uint16_t duty_motor_1, duty_motor_2;
+volatile uint16_t tot_overflow;
 
 
 void pwm_init_timer_zero()
@@ -36,6 +38,14 @@ void motors_init() {
 void change_direction() {
     PORTD ^= (1 << MOTOR_1_PHASE);
     PORTD ^= (1 << MOTOR_2_PHASE);
+}
+
+void forwards() {
+    PORTD |= (1 << MOTOR_1_PHASE) | (1 << MOTOR_2_PHASE);
+}
+
+void backwards() {
+    PORTD &= ~((1 << MOTOR_1_PHASE) & (1 << MOTOR_2_PHASE));
 }
 
 void change_spped_of_first_motor(uint8_t change) {
@@ -71,6 +81,19 @@ void Wait()
 
 }
 
+uint16_t index_of_max(uint16_t numbers[], uint16_t N) {
+    int max = -100;
+    uint16_t max_index = 0;
+    int i;
+    for (i = 0; i < N; i++) {
+        if (max < numbers[i]) {
+            max = numbers[i];
+            max_index = i;
+        }
+    }
+    return max_index;
+}
+
 
 int main()
 {
@@ -78,55 +101,52 @@ int main()
     initialize_diodes();
     initialize_us();
 
-    duty_motor_1 = 65;
-    duty_motor_2 = 65;
+    duty_motor_1 = 105;
+    duty_motor_2 = 105;
 
     OCR0A = duty_motor_1;
     OCR2A = duty_motor_2;
 
-    int distance;
-    uint8_t i;
+    uint16_t distance;
+    uint16_t direction;
+    
 
-    int MAX_BACK_UP = 10;
     //Configure TIMER1
-    TCCR1A|=(1<<COM1A1)|(1<<COM1B1)|(1<<WGM11);        //NON Inverted PWM
-    TCCR1B|=(1<<WGM13)|(1<<WGM12)|(1<<CS11)|(1<<CS10); //PRESCALER=64 MODE 14(FAST PWM)
+    TCCR3A|=(1<<COM3A1)|(1<<COM3B1)|(1<<WGM31);        //NON Inverted PWM
+    TCCR3B|=(1<<WGM33)|(1<<WGM32)|(1<<CS31)|(1<<CS30); //PRESCALER=64 MODE 14(FAST PWM)
 
-    ICR1=4999;  //fPWM=50Hz (Period = 20ms Standard).
+    ICR3=4999;  //fPWM=50Hz (Period = 20ms Standard).
 
-    DDRB|= (1<<PB5);   //PWM Pins as Out
-
-
+    DDRC|= (1<<PC6);   //PWM Pins as Out
+    
+    uint16_t angles[] = {186, 220, 286, 414, 220, 286};
+    uint16_t indexes[] = {0, 1, 2, 3, 2, 1};
+    uint16_t distance_values[] = {0, 0, 100, 0, 0};
+    
+    int i = 0;
     while(1){
-        OCR1A=216;  //90 degree
-        _delay_ms(50);
-
-        
-        OCR1A=435;  //180 degree
-        _delay_ms(50);
-
-        OCR1A=216;  //90 degree
-        _delay_ms(50);
-
-        OCR1A=325;  //135 degree
-        _delay_ms(50);
-
-        OCR1A=167;   //0 degree
-        _delay_ms(50);
-
-        OCR0A = duty_motor_1;
-        OCR2A = duty_motor_2;
+        _delay_ms(50); 
+        OCR3A = angles[i];  //90 degree
+        _delay_ms(100);
         distance = measure_distance();
+        distance_values[indexes[i]] = distance;
+        
+        i = (i + 1) % 4; 
+
         turn_off_diodes();
         if(distance == INVALID_DISTANCE) {
             toggle_red_diode();
         } else if (distance == INFINITE_DISTANCE) {
             toggle_green_diode(); 
         } else {
-            if(distance > 10) {
+            if(distance_values[2] > 10) {
+                forwards();
+                direction = index_of_max(distance_values, 5);
                 toggle_yellow_diode();
                 _delay_ms(50);
                 turn_off_diodes();
+                OCR0A = duty_motor_1 - (direction - 2) * 40;
+                OCR2A = duty_motor_2;
             }
             else {
                 toggle_yellow_diode();
@@ -136,12 +156,11 @@ int main()
 
                 _delay_ms(100);
                 change_direction();
+                _delay_ms(400);
                 OCR0A = duty_motor_1;
                 OCR2A = duty_motor_2;
-                for(i=0; i < MAX_BACK_UP; i++) {
-                    _delay_ms(50);
-                }
-                change_direction();
+                
+                _delay_ms(100);
             }
         }
 
