@@ -119,7 +119,7 @@ int main()
 
     DDRC|= (1<<PC6);   //PWM Pins as Out
     
-    uint16_t angles[] = {186, 220, 286, 414, 220, 286};
+    uint16_t angles[] = {186, 220, 286, 414, 286, 220};
     uint16_t indexes[] = {0, 1, 2, 3, 2, 1};
     uint16_t distance_values[] = {0, 0, 100, 0, 0};
     
@@ -131,7 +131,7 @@ int main()
         distance = measure_distance();
         distance_values[indexes[i]] = distance;
         
-        i = (i + 1) % 4; 
+        i = (i + 1) % 5; 
 
         turn_off_diodes();
         if(distance == INVALID_DISTANCE) {
@@ -156,11 +156,12 @@ int main()
 
                 _delay_ms(100);
                 change_direction();
-                _delay_ms(400);
-                OCR0A = duty_motor_1;
-                OCR2A = duty_motor_2;
-                
                 _delay_ms(100);
+                direction = index_of_max(distance_values, 5);
+                OCR0A = duty_motor_1;
+                OCR2A = duty_motor_2 - (direction -2 ) * 40;
+                
+                _delay_ms(500);
             }
         }
 
