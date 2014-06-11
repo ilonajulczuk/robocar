@@ -119,20 +119,22 @@ int main()
 
     DDRC|= (1<<PC6);   //PWM Pins as Out
     
-    uint16_t angles[] = {186, 220, 286, 414, 286, 220};
-    uint16_t indexes[] = {0, 1, 2, 3, 2, 1};
-    uint16_t distance_values[] = {0, 0, 100, 0, 0};
+    int number_of_values = 6; 
+    uint16_t angles[] = {186, 250, 316, 340, 414, 340, 316, 250};
+    uint16_t indexes[] = {0, 1, 2, 3, 4, 3, 2, 1};
+    uint16_t distance_values[] = {0, 0, 0, 100, 0, 0, 0};
     
     int i = 0;
     while(1){
         _delay_ms(50); 
         OCR3A = angles[i];  //90 degree
-        _delay_ms(100);
+        _delay_ms(50);
         distance = measure_distance();
         distance_values[indexes[i]] = distance;
         
-        i = (i + 1) % 5; 
+        i = (i + 1) % 7; 
 
+        
         turn_off_diodes();
         if(distance == INVALID_DISTANCE) {
             toggle_red_diode();
@@ -141,7 +143,7 @@ int main()
         } else {
             if(distance_values[2] > 10) {
                 forwards();
-                direction = index_of_max(distance_values, 5);
+                direction = index_of_max(distance_values, number_of_values);
                 toggle_yellow_diode();
                 _delay_ms(50);
                 turn_off_diodes();
@@ -157,7 +159,7 @@ int main()
                 _delay_ms(100);
                 change_direction();
                 _delay_ms(100);
-                direction = index_of_max(distance_values, 5);
+                direction = index_of_max(distance_values, number_of_values);
                 OCR0A = duty_motor_1;
                 OCR2A = duty_motor_2 - (direction -2 ) * 40;
                 
