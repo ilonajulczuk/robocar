@@ -1,3 +1,9 @@
+#Assembled robot
+
+![zenon-bot](http://i.imgur.com/35FpQ5d.jpg)
+
+It's a little wibbly-wobbly cutie.
+
 #PARTS
 
  - atmega32u4 board
