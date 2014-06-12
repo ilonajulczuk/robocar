@@ -3,9 +3,15 @@
  - atmega32u4 board
  - sparkfun redbot chassis
  - drv8835 dual motor driver carrier
- - lots of sensors
+ - HC-SR04 ultrasonic sensor
+ - servo-motor
+ - lots of duct tape and zip tie
 
 ![Parts](http://i.imgur.com/P2JPmtV.jpg)
+
+![duct tape](http://cdn1.bigcommerce.com/server600/1r2fayi/product_images/uploaded_images/duct-tape.jpg)
+
+![zip tie](http://ecx.images-amazon.com/images/I/61F72PN1AZL.gif)
 
 ##Motor control
 
@@ -47,11 +53,33 @@ by two and speed of sound we get distance.
 I used this [tutorial](http://extremeelectronics.co.in/avr-tutorials/interfacing-ultrasonic-rangefinder-with-avr-mcus-%E2%80%93-avr-tutorial/)
 which uses similar sensor (but with only one pin for communication with a sensor).
 
+Ultrasonic motor is placed on a servo motor which rotates it. This setup creates
+a radar which enables robot to scan it's environment and choose the best path to go.
+
 ##DIODES
 
 I use blinking diodes to debug how sensors are working using color codes.
 
-##TODO
 
-I have two more additional distance sensors from sharp. I will use them to scan both sides
-of the robot.
+##Servo motor
+
+I used small servo of unknow brand. It was lying around.
+
+It has three inputs:
+
+- VCC
+- GND
+- control signal
+
+I control it using PWM on 50 Hz. Different duty cycles enable me to set servo
+to different angles.
+
+##Schematic
+
+Here is a design picture created using [fritzing](http://fritzing.org).
+
+![Imgur](http://i.imgur.com/HJUOlHg.png)
+
+Design is a bit messy, but it's only a prototype on breadboard. I haven't done
+any pcb yet.
+
