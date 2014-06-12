@@ -66,6 +66,11 @@ a radar which enables robot to scan it's environment and choose the best path to
 
 I use blinking diodes to debug how sensors are working using color codes.
 
+- green - no obstacle detected in front of the robot (rare)
+- red - distance sensor not working correctly
+- white
+    - blinking - can ride without problems
+    - constant light - obstacle detected really near the robot, robot needs to reverse immediately
 
 ##Servo motor
 
@@ -88,4 +93,40 @@ Here is a design picture created using [fritzing](http://fritzing.org).
 
 Design is a bit messy, but it's only a prototype on breadboard. I haven't done
 any pcb yet.
+
+
+##Software
+
+Software is written in C for atmega32u4.
+
+
+###Initialization
+
+Programs starts with initializations.
+
+Here are initialized components:
+
+- motors
+- diodes
+- ultrasonic sensor
+- radar (servo rotating ultrasonic sensor)
+
+###Moving forward
+
+In main loop everything starts from radar measuring a distance and 
+storing it to appropriate cell in table of measured distance for different angles.
+
+Then robot checks how much space is available for it if running forwards.
+If sensor works correctly and there is no obstacle nearer than 10 cm, robot
+chooses the best direction to turn based on amount of available space.
+The farther from obstacle, the better.
+
+###Avoiding obstacles
+
+If sensor detects an obstacle in front of it, it reverses, turning in the same time.
+
+The choice of angle is based on `distance_values` for angles.
+
+After that it stops and scans an environment with radar to update `distance_values.
+
 

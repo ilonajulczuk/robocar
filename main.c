@@ -14,6 +14,7 @@ uint16_t duty_motor_2 = 165;
 int change = 20;
 
 int number_of_values = 7; 
+int middle_angle_index = 2;
 uint16_t angles[] = {186, 250, 316, 340, 414, 340, 316, 250};
 uint16_t indexes[] = {0, 1, 2, 3, 4, 3, 2, 1};
 uint16_t distance_values[] = {0, 0, 0, 100, 0, 0, 0};
@@ -103,7 +104,7 @@ int main()
 
     while(1){
         radar_measure();
-        distance_forward = distance_values[3];
+        distance_forward = distance_values[middle_angle_index];
         turn_off_diodes();
         if(distance_forward == INVALID_DISTANCE) {
             toggle_red_diode();
