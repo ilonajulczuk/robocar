@@ -13,6 +13,13 @@ volatile uint16_t duty_motor_1, duty_motor_2;
 volatile uint16_t tot_overflow;
 
 
+int number_of_values = 7; 
+uint16_t angles[] = {186, 250, 316, 340, 414, 340, 316, 250};
+uint16_t indexes[] = {0, 1, 2, 3, 4, 3, 2, 1};
+uint16_t distance_values[] = {0, 0, 0, 100, 0, 0, 0};
+
+int i = 0;
+
 void pwm_init_timer_zero()
 {
     // initialize TCCR0 as per requirement, say as follows
@@ -47,40 +54,6 @@ void forwards() {
 void backwards() {
     PORTD &= ~((1 << MOTOR_1_PHASE) & (1 << MOTOR_2_PHASE));
 }
-
-void change_spped_of_first_motor(uint8_t change) {
-    if(duty_motor_1 + change >= MAX_SPEED) {
-        duty_motor_1 = MAX_SPEED;
-    } else if(duty_motor_1 + change <= MIN_SPEED) {
-        duty_motor_1 = MIN_SPEED;
-    } else {
-        duty_motor_1 += change;
-    }
-}
-
-void change_spped_of_second_motor(uint8_t change) {
-    if(duty_motor_2 + change >= MAX_SPEED) {
-        duty_motor_2 = MAX_SPEED;
-    } else if(duty_motor_2 + change <= MIN_SPEED) {
-        duty_motor_2 = MIN_SPEED;
-    } else {
-        duty_motor_2 += change;
-    }
-}
-
-//Simple Wait Function
-void Wait()
-{
-   uint8_t i;
-   for(i=0;i<10;i++)
-   {
-      _delay_loop_2(0);
-      _delay_loop_2(0);
-      _delay_loop_2(0);
-   }
-
-}
-
 uint16_t index_of_max(uint16_t numbers[], uint16_t N) {
     int max = -100;
     uint16_t max_index = 0;
@@ -94,22 +67,32 @@ uint16_t index_of_max(uint16_t numbers[], uint16_t N) {
     return max_index;
 }
 
+void radar_measure() {
+    uint16_t distance;
+    _delay_ms(50); 
+    OCR3A = angles[i];
+    _delay_ms(50);
+    distance = measure_distance();
+    distance_values[indexes[i]] = distance;
+    
+    i = (i + 1) % number_of_values; 
+}
 
 int main()
 {
+    int change = 20;
+    uint16_t direction;
+    uint16_t distance_forward;
     motors_init();
     initialize_diodes();
     initialize_us();
 
-    duty_motor_1 = 105;
-    duty_motor_2 = 105;
+    duty_motor_1 = 165;
+    duty_motor_2 = 165;
 
     OCR0A = duty_motor_1;
     OCR2A = duty_motor_2;
 
-    uint16_t distance;
-    uint16_t direction;
-    
 
     //Configure TIMER1
     TCCR3A|=(1<<COM3A1)|(1<<COM3B1)|(1<<WGM31);        //NON Inverted PWM
@@ -119,26 +102,14 @@ int main()
 
     DDRC|= (1<<PC6);   //PWM Pins as Out
     
-    int number_of_values = 6; 
-    uint16_t angles[] = {186, 250, 316, 340, 414, 340, 316, 250};
-    uint16_t indexes[] = {0, 1, 2, 3, 4, 3, 2, 1};
-    uint16_t distance_values[] = {0, 0, 0, 100, 0, 0, 0};
-    
-    int i = 0;
+    int j = 0;
     while(1){
-        _delay_ms(50); 
-        OCR3A = angles[i];  //90 degree
-        _delay_ms(50);
-        distance = measure_distance();
-        distance_values[indexes[i]] = distance;
-        
-        i = (i + 1) % 7; 
-
-        
+        radar_measure();
+        distance_forward = distance_values[3];
         turn_off_diodes();
-        if(distance == INVALID_DISTANCE) {
+        if(distance_forward == INVALID_DISTANCE) {
             toggle_red_diode();
-        } else if (distance == INFINITE_DISTANCE) {
+        } else if (distance_forward == INFINITE_DISTANCE) {
             toggle_green_diode(); 
         } else {
             if(distance_values[2] > 10) {
@@ -147,7 +118,7 @@ int main()
                 toggle_yellow_diode();
                 _delay_ms(50);
                 turn_off_diodes();
-                OCR0A = duty_motor_1 - (direction - 2) * 40;
+                OCR0A = duty_motor_1 + (direction - 2) * change;
                 OCR2A = duty_motor_2;
             }
             else {
@@ -161,9 +132,15 @@ int main()
                 _delay_ms(100);
                 direction = index_of_max(distance_values, number_of_values);
                 OCR0A = duty_motor_1;
-                OCR2A = duty_motor_2 - (direction -2 ) * 40;
+                OCR2A = duty_motor_2 + (direction -2 ) * 40;
+                _delay_ms(900);
+
+                OCR0A = 0;
+                OCR2A = 0;
                 
-                _delay_ms(500);
+                for(j = 0; j < number_of_values; j++) {
+                    radar_measure();
+                }
             }
         }
 
