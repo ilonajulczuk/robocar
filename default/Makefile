@@ -5,7 +5,7 @@
 ## General Flags
 PROJECT = robocar
 MCU = atmega32u4
-TARGET = robocar.elf
+TARGET = $(PROJECT).elf
 CC = avr-gcc
 
 ## Options common to compile, link and assembly rules
@@ -40,7 +40,7 @@ OBJECTS = ultrasonic_sensor.o main.o
 LINKONLYOBJECTS = 
 
 ## Build
-all: $(TARGET) robocar.hex robocar.eep size
+all: $(TARGET) $(PROJECT).hex $(PROJECT).eep size
 
 ## Compile
 ultrasonic_sensor.o: ../ultrasonic_sensor.c
@@ -69,7 +69,7 @@ size: ${TARGET}
 ## Clean target
 .PHONY: clean
 clean:
-	-rm -rf $(OBJECTS) robocar.elf dep/* robocar.hex robocar.eep
+	-rm -rf $(OBJECTS) $(PROJECT).elf dep/* $(PROJECT).hex $(PROJECT).eep
 
 ## Other dependencies
 -include $(shell mkdir dep 2>/dev/null) $(wildcard dep/*)
